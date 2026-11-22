@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: webapp-config
+  namespace: webapp-stack
+data:
+  APP_TITLE: "hello in MLOPS MENA COMMUNITY"
+  APP_ENV: "dev"
+  MYSQL_WRITE_HOST: "mysql-write"
+  MYSQL_READ_HOST: "mysql-read"
+  MYSQL_PORT: "3306"
+  MYSQL_DATABASE: "webapp"

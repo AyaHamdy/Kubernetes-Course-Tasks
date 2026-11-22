@@ -1,0 +1,9 @@
+[mysqld]
+# Replication with GTIDs: every transaction gets a global ID,
+# so a new replica can copy everything from the source automatically.
+gtid_mode                = ON
+enforce_gtid_consistency = ON
+log_bin                  = mysql-bin
+
+# Do not resolve client host names (faster connections inside Kubernetes)
+skip_name_resolve        = ON

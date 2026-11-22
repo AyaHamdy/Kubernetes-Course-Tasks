@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-write
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: mysql
+    role: write
+spec:
+  replicas: {{ .Values.mysql.write.replicaCount }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: mysql
+      role: write
+  template:
+    metadata:
+      labels:
+        app: mysql
+        role: write
+    spec:
+      containers:
+      - name: mysql
+        image: "{{ .Values.mysql.write.image.repository }}:{{ .Values.mysql.write.image.tag }}"
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 3306
+        env:
+        - name: MYSQL_ROLE
+          value: source
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: root-password
+        - name: APP_DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: app-user
+        - name: APP_DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: app-password
+        - name: APP_DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: webapp-config
+              key: MYSQL_DATABASE
+        - name: MYSQL_REPL_USER
+          value: repl
+        - name: MYSQL_REPL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: replication-password
+        readinessProbe:
+          exec:
+            command: ["mysqladmin", "ping", "-h", "127.0.0.1"]
+          initialDelaySeconds: 20
+          periodSeconds: 10
+        livenessProbe:
+          exec:
+            command: ["mysqladmin", "ping", "-h", "127.0.0.1"]
+          initialDelaySeconds: 60
+          periodSeconds: 20
+        volumeMounts:
+        - name: mysql-data
+          mountPath: /var/lib/mysql
+          subPath: write
+      volumes:
+      - name: mysql-data
+        persistentVolumeClaim:
+          claimName: mysql-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-write
+  namespace: {{ .Release.Namespace }}
+spec:
+  type: ClusterIP
+  selector:
+    app: mysql
+    role: write
+  ports:
+  - port: 3306
+    targetPort: 3306

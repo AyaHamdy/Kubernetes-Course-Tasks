@@ -1,0 +1,23 @@
+app:
+  replicaCount: 2
+  image:
+    repository: webapp-api
+    tag: task3
+
+mysql:
+  write:
+    replicaCount: 1
+    image:
+      repository: webapp-mysql
+      tag: task3
+  read:
+    replicaCount: 2
+    image:
+      repository: webapp-mysql
+      tag: task3
+
+storage:
+  pv:
+    size: 2Gi
+  pvc:
+    size: 2Gi
